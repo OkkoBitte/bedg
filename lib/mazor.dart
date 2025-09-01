@@ -7,7 +7,17 @@ import 'dart:typed_data';
 import 'package:bedg/structs.dart' as structs;
 
 const mazorCode = 1;
-
+String generateRandomString(int length) {
+  final random = Random();
+  const availableChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  return String.fromCharCodes(
+    List.generate(
+      length,
+      (index) => availableChars.codeUnitAt(random.nextInt(availableChars.length))
+    )
+  );
+}
 class PacketController {
   bool isActive = true;
   static const int maxLenghtManagment = 100;
@@ -66,16 +76,16 @@ class PacketController {
           packet.restartTimer(); 
         }
       }
-
+      final random = Random();
       actions.add(structs.ActionControll(
         structs.ActionControll.send,
         structs.MazorPacket(
           type: structs.PacketType.controll,
-          hxCode1: 0,
-          hxCode2: 0,
-          timeOut: 0,
-          dataSize1: 0,
-          dataSize2: 1,
+          hxCode1: random.nextInt(256), 
+          hxCode2: random.nextInt(256), 
+          timeOut: 0x0A,
+          dataSize1: 1,
+          dataSize2: 0,
 
           data: Uint8List.fromList([structs.PacketControll.hier])
 
@@ -179,7 +189,7 @@ class ClientManager {
       (Uint8List data) {
         
         try {
-          print("lenght ${data.length}");
+         
           final packet = structs.MazorPacket.fromBytes(data);
           packetControll.putHe(packet);
         } catch (e) {
@@ -249,6 +259,11 @@ class ClientManager {
     lPhisiceSocket = null;
     packetControll.stop();
     onConnected?.call();
+    addSmessage(jsonEncode({
+      'type': 'status', 
+      'head': 'disconnected',
+      'message': 'Connection closed'
+    }));
   }
 
   void dispose() {

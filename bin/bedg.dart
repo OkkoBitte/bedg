@@ -5,12 +5,13 @@ import 'package:bedg/structs.dart';
 
 void main(List<String> arguments) async {
   await Future.delayed(Duration(milliseconds: 100));
-  String sey = "0123456789ABCDEF0000";
+  String sey = generateRandomString(20);
+  print("My sey: $sey");
   final chp = ClientHeadPacket(
     clientSey: sey,
     clientOptions: Uint8List.fromList([0x01, 0x02, 0xFF, 0, 0, 0, 0, 0, 0, mazorCode]),
   );
-
+  
   final cm = ClientManager(chp, "web-mbg.ru", 333);
 
   final connected = await cm.connect();
@@ -22,8 +23,8 @@ void main(List<String> arguments) async {
     print("Connected");
   };
   cm.onGet = (data) {
-    print("Received data: ${data.length} bytes");
-    print("Data: ${String.fromCharCodes(data)}");
+  
+    print("Get-> ${String.fromCharCodes(data)}");
   };
   cm.onClose = (){
     print("Close");
@@ -31,12 +32,15 @@ void main(List<String> arguments) async {
   cm.sMessage = (m){
     print(m);
   };
-
-  String otherSey = "So2hlhUDeTEdvQVqjOmQ";
   
+  cm.send(Uint8List.fromList(
+    utf8.encode(sey) // who? (my)
+    +
+    [1] // type text
+    +
+    utf8.encode("hello") // message
+    ));
 
-  cm.send(Uint8List.fromList(utf8.encode(otherSey)+[1]+utf8.encode("hello")));
-
-  await Future.delayed(Duration(seconds: 3));
+  await Future.delayed(Duration(seconds: 20));
   cm.disconnect();
 }
